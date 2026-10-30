@@ -28,10 +28,10 @@ public class Producto {
     @JoinColumn(name = "categoria_id", referencedColumnName = "id", nullable = false)
     private Categoria categoria;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String unidad;
 
     @Column(nullable = false, precision = 12, scale = 2)
@@ -41,7 +41,7 @@ public class Producto {
     private int stock;
 
     @Column(nullable = false)
-    private boolean activo;
+    private boolean activo = true;
 
     @Version
     private int version;
