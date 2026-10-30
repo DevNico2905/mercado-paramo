@@ -64,7 +64,7 @@ GlobalExceptionHandler   Mappers entidad ↔ DTO
 
 ```
 mercado-paramo/
-├── src/main/java/dev/nickbern/mercadoparamo/
+├── src/main/java/dev/nickbern/mercado_paramo/
 │   ├── config/          SecurityConfig, OpenApiConfig
 │   ├── security/        JwtService, JwtAuthFilter
 │   ├── controller/      Auth, Productor, Producto, Pedido, Reporte
