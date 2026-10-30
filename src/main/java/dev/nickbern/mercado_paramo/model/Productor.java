@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "productores")
-@AllArgsConstructor
+@Table(name = "productor")
 @NoArgsConstructor
 @Getter @Setter
 public class Productor {
@@ -18,13 +17,13 @@ public class Productor {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false, unique = true)
+    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
     @Column(nullable = false)
     private String vereda;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
     @Enumerated(EnumType.STRING)

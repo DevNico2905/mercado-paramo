@@ -5,15 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "pedidos")
-@AllArgsConstructor
+@Table(name = "pedido")
 @NoArgsConstructor
 @Getter @Setter
 public class Pedido {
@@ -22,16 +23,17 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "comprador_id", nullable = false)
-    private Usuario usuario;
+    private Usuario comprador;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "productor_id", nullable = false)
     private Productor productor;
 
-    @Column(nullable = false)
-    private LocalDate fecha;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime fecha;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -47,7 +49,7 @@ public class Pedido {
     private BigDecimal comision;
 
     @Column(nullable = false, length = 200)
-    private String direccion;
+    private String direccionEntrega;
 
     public void agregarDetalle(DetallePedido detalle) {
         detalles.add(detalle);

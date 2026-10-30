@@ -9,8 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "productos")
-@AllArgsConstructor
+@Table(name = "producto")
 @NoArgsConstructor
 @Getter
 @Setter
@@ -20,11 +19,11 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "productor_id", referencedColumnName = "id", nullable = false)
     private Productor productor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "categoria_id", referencedColumnName = "id", nullable = false)
     private Categoria categoria;
 
@@ -44,6 +43,6 @@ public class Producto {
     private boolean activo = true;
 
     @Version
-    private int version;
+    private Integer version;
 
 }

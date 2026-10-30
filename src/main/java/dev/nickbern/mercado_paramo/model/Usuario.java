@@ -1,20 +1,14 @@
 package dev.nickbern.mercado_paramo.model;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigInteger;
-import java.time.LocalDate;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuario")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter @Setter
 public class Usuario {
 
@@ -29,7 +23,7 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String password_hash;
+    private String passwordHash;
 
     @Column(nullable = false)
     private String telefono;
@@ -38,7 +32,8 @@ public class Usuario {
     @Column(nullable = false)
     private Rol rol;
 
-    @Column(nullable = false)
-    private LocalDate fecha_registro;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime fechaRegistro;
 
 }
