@@ -10,8 +10,6 @@ public abstract class NegocioException extends RuntimeException {
     protected NegocioException(String mensaje, HttpStatus status) {
         super(mensaje);
         this.status = status;
-        // 1. ¿Cómo le pasas el mensaje a RuntimeException?
-        // 2. ¿Qué haces con el status?
     }
 
 

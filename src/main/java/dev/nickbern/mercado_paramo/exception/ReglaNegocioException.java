@@ -3,7 +3,7 @@ import org.springframework.http.HttpStatus;
 
 public class ReglaNegocioException extends NegocioException{
 
-    public ReglaNegocioException(String mensaje, HttpStatus status) {
+    public ReglaNegocioException(String mensaje) {
         super(mensaje, HttpStatus.BAD_REQUEST);
     }
 }

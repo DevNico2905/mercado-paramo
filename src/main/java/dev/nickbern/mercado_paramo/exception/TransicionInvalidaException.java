@@ -3,7 +3,7 @@ import org.springframework.http.HttpStatus;
 
 public class TransicionInvalidaException extends NegocioException{
 
-    public TransicionInvalidaException(String mensaje, HttpStatus status) {
+    public TransicionInvalidaException(String mensaje) {
         super(mensaje, HttpStatus.CONFLICT);
     }
 }

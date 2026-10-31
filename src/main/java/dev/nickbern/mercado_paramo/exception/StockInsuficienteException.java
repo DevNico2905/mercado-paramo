@@ -3,7 +3,7 @@ import org.springframework.http.HttpStatus;
 
 public class StockInsuficienteException extends NegocioException{
 
-    public StockInsuficienteException(String mensaje, HttpStatus status) {
+    public StockInsuficienteException(String mensaje) {
         super(mensaje, HttpStatus.CONFLICT);
     }
 }

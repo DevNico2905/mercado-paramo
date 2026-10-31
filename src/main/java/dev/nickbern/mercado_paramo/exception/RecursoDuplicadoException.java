@@ -3,7 +3,7 @@ import org.springframework.http.HttpStatus;
 
 public class RecursoDuplicadoException extends NegocioException{
 
-    public RecursoDuplicadoException(String mensaje, HttpStatus status) {
+    public RecursoDuplicadoException(String mensaje) {
         super(mensaje, HttpStatus.CONFLICT);
     }
 }

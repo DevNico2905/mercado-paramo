@@ -3,7 +3,7 @@ import org.springframework.http.HttpStatus;
 
 public class AccesoDenegadoException extends NegocioException{
 
-    public AccesoDenegadoException(String mensaje, HttpStatus status) {
+    public AccesoDenegadoException(String mensaje) {
         super(mensaje, HttpStatus.FORBIDDEN);
     }
 }
