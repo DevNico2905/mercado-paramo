@@ -84,15 +84,26 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void manejarGeneral_devuelve500ConFormatoEstandar() throws Exception{
-        mockMvc.perform(get("/test/error-internot"))
+    void errorInesperado_devuelve500SinExponerDetalles() throws Exception{
+        mockMvc.perform(get("/test/error-interno"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.error").value("Internal Server Error"))
                 .andExpect(jsonPath("$.message").value("Ocurrió un error inesperado en el servidor"))
-                .andExpect(jsonPath("$.path").value("/test/error-internot"))
+                .andExpect(jsonPath("$.path").value("/test/error-interno"))
                 .andExpect(jsonPath("$.errores").isEmpty())
                 .andExpect(content().string(not(containsString("secreto"))));
 
+    }
+
+    @Test
+    void rutaInexistente_devuelve404() throws Exception {
+        mockMvc.perform(get("/test/no-existe"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("El recurso solicitado no existe"))
+                .andExpect(jsonPath("$.path").value("/test/no-existe"))
+                .andExpect(jsonPath("$.errores").isEmpty());
     }
 }
