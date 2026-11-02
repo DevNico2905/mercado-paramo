@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message("El cuerpo de la petición no es válido. Revisa el formato JSON y las fechas (yyyy-MM-ddTHH:mm:ss)")
+                .message("El cuerpo de la petición no es válido")
                 .path(request.getRequestURI())
                 .errores(Map.of())
                 .build();
