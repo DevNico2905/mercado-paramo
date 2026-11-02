@@ -25,31 +25,36 @@ public class AuthService {
     @Transactional
     public RegistroResponse registro(RegistroRequest request){
 
-        if (Rol.ADMIN.name().equalsIgnoreCase(request.rol()))
-            throw new ReglaNegocioException("Rol inválido");
+        if (Rol.ADMIN == request.rol()){
+            throw new ReglaNegocioException("No se permite el registro con rol ADMIN");
+        }
 
-        if (usuarioRepository.existsByEmail(request.email().strip().toLowerCase()))
-            throw new RecursoDuplicadoException(request.email().strip().toLowerCase() + " - Ya se encuentra registrado");
+        String email = request.email().strip().toLowerCase();
 
-        if (Rol.PRODUCTOR.name().equalsIgnoreCase(request.rol()) && request.vereda() == null)
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RecursoDuplicadoException("El email ya está registrado");
+        }
+
+        if (Rol.PRODUCTOR == request.rol() && (request.vereda() == null || request.vereda().isBlank())) {
             throw new ReglaNegocioException("Para 'PRODUCTOR' la vereda es obligatoria");
+        }
 
-        Usuario newUser = new Usuario(
+        Usuario usuario = new Usuario(
                 request.nombre(),
-                request.email().strip().toLowerCase(),
+                email,
                 passwordEncoder.encode(request.password()),
                 request.telefono(),
-                setRol(request.rol())
+                request.rol()
         );
 
-        Usuario userSaved =  usuarioRepository.save(newUser);
+        Usuario usuarioGuardado =  usuarioRepository.save(usuario);
 
         Productor productor = null;
 
-        if (Rol.PRODUCTOR.name().equalsIgnoreCase(userSaved.getRol().name())){
+        if (Rol.PRODUCTOR == usuarioGuardado.getRol()){
 
             Productor newProductor = new Productor(
-                    userSaved,
+                    usuarioGuardado,
                     request.vereda(),
                     request.descripcion(),
                     EstadoVerificacion.PENDIENTE
@@ -58,14 +63,6 @@ public class AuthService {
             productor = productorRepository.save(newProductor);
         }
 
-        return RegistroResponse.de(userSaved, productor);
-    }
-
-    public static Rol setRol(String inputRol){
-        if (Rol.PRODUCTOR.name().equalsIgnoreCase(inputRol)){
-            return Rol.PRODUCTOR;
-        } else {
-            return Rol.COMPRADOR;
-        }
+        return RegistroResponse.de(usuarioGuardado, productor);
     }
 }

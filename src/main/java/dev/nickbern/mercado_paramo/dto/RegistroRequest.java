@@ -1,5 +1,6 @@
 package dev.nickbern.mercado_paramo.dto;
 
+import dev.nickbern.mercado_paramo.model.Rol;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +22,8 @@ public record RegistroRequest(
         @NotBlank(message = "El telefono es obligatorio")
         String telefono,
 
-        @NotBlank(message = "El rol es obligatorio")
-        String rol,
+        @NotNull(message = "El rol es obligatorio")
+        Rol rol,
 
         String vereda,
 
