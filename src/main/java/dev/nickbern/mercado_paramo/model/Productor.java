@@ -29,4 +29,11 @@ public class Productor {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoVerificacion estadoVerificacion;
+
+    public Productor(Usuario usuario, String vereda, String descripcion, EstadoVerificacion estadoVerificacion) {
+        this.usuario = usuario;
+        this.vereda = vereda;
+        this.descripcion = descripcion;
+        this.estadoVerificacion = estadoVerificacion;
+    }
 }

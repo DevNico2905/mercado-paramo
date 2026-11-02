@@ -36,4 +36,11 @@ public class Usuario {
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
+    public Usuario(String nombre, String email, String passwordHash, String telefono, Rol rol) {
+        this.nombre = nombre;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.telefono = telefono;
+        this.rol = rol;
+    }
 }
