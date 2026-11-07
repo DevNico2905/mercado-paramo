@@ -46,7 +46,7 @@ public class JwtService {
         return parsearClaims(token).getSubject();
     }
 
-    public Claims parsearClaims(String token){
+    private Claims parsearClaims(String token){
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
