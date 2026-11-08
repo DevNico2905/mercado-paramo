@@ -1,4 +1,6 @@
 package dev.nickbern.mercado_paramo.service;
+import dev.nickbern.mercado_paramo.dto.LoginRequest;
+import dev.nickbern.mercado_paramo.dto.LoginResponse;
 import dev.nickbern.mercado_paramo.dto.RegistroRequest;
 import dev.nickbern.mercado_paramo.dto.RegistroResponse;
 import dev.nickbern.mercado_paramo.exception.RecursoDuplicadoException;
@@ -9,10 +11,15 @@ import dev.nickbern.mercado_paramo.model.Rol;
 import dev.nickbern.mercado_paramo.model.Usuario;
 import dev.nickbern.mercado_paramo.repository.ProductorRepository;
 import dev.nickbern.mercado_paramo.repository.UsuarioRepository;
+import dev.nickbern.mercado_paramo.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,8 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final ProductorRepository productorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Transactional
     public RegistroResponse registro(RegistroRequest request){
@@ -64,5 +73,15 @@ public class AuthService {
         }
 
         return RegistroResponse.de(usuarioGuardado, productor);
+    }
+
+    public LoginResponse login(LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(), request.password()));
+
+        UserDetails principal = (UserDetails) authentication.getPrincipal();
+        String token = jwtService.generarToken(principal);
+        return new LoginResponse(token, "Bearer", jwtService.getExpiracionSegundos());
     }
 }

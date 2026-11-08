@@ -1,5 +1,7 @@
 package dev.nickbern.mercado_paramo.controller;
 
+import dev.nickbern.mercado_paramo.dto.LoginRequest;
+import dev.nickbern.mercado_paramo.dto.LoginResponse;
 import dev.nickbern.mercado_paramo.dto.RegistroRequest;
 import dev.nickbern.mercado_paramo.dto.RegistroResponse;
 import dev.nickbern.mercado_paramo.service.AuthService;
@@ -22,6 +24,11 @@ public class AuthController {
     @PostMapping("/registro")
     public ResponseEntity<RegistroResponse> registro(@Valid @RequestBody RegistroRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.registro(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+        return ResponseEntity.ok(authService.login(request));
     }
 
 }
