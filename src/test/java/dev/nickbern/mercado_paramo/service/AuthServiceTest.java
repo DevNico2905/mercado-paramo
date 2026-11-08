@@ -1,5 +1,7 @@
 package dev.nickbern.mercado_paramo.service;
 
+import dev.nickbern.mercado_paramo.dto.LoginRequest;
+import dev.nickbern.mercado_paramo.dto.LoginResponse;
 import dev.nickbern.mercado_paramo.dto.RegistroRequest;
 import dev.nickbern.mercado_paramo.dto.RegistroResponse;
 import dev.nickbern.mercado_paramo.exception.RecursoDuplicadoException;
@@ -10,12 +12,19 @@ import dev.nickbern.mercado_paramo.model.Rol;
 import dev.nickbern.mercado_paramo.model.Usuario;
 import dev.nickbern.mercado_paramo.repository.ProductorRepository;
 import dev.nickbern.mercado_paramo.repository.UsuarioRepository;
+import dev.nickbern.mercado_paramo.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +42,12 @@ class AuthServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private AuthService authService;
@@ -126,5 +141,50 @@ class AuthServiceTest {
         assertEquals("La Concepción", productorGuardado.getVereda());
         assertEquals(EstadoVerificacion.PENDIENTE, productorGuardado.getEstadoVerificacion());
         assertNotNull(productorGuardado.getUsuario());
+    }
+
+    @Test
+    void login_credencialesValidas_devuelveTokenBearer() {
+
+        LoginRequest request = new LoginRequest("maria@correo.com", "clave-segura-123");
+
+        UserDetails principal = User.withUsername("maria@correo.com")
+                .password("hash-falso")
+                .roles("COMPRADOR")
+                .build();
+
+        Authentication autenticado =
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(autenticado);
+        when(jwtService.generarToken(principal)).thenReturn("token-falso");
+        when(jwtService.getExpiracionSegundos()).thenReturn(86400L);
+
+        LoginResponse response = authService.login(request);
+
+        assertEquals("token-falso", response.token());
+        assertEquals("Bearer", response.tipo());
+        assertEquals(86400L, response.expiraEnSegundos());
+
+        ArgumentCaptor<UsernamePasswordAuthenticationToken> captor =
+                ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+        verify(authenticationManager).authenticate(captor.capture());
+        assertEquals("maria@correo.com", captor.getValue().getPrincipal());
+        assertEquals("clave-segura-123", captor.getValue().getCredentials());
+    }
+
+    @Test
+    void login_credencialesInvalidas_propagaExcepcionYNoGeneraToken() {
+
+        LoginRequest request = new LoginRequest("maria@correo.com", "incorrecta");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(BadCredentialsException.class,
+                () -> authService.login(request));
+
+        verify(jwtService, never()).generarToken(any());
     }
 }
