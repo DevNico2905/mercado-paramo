@@ -1,5 +1,4 @@
 package dev.nickbern.mercado_paramo.integration;
-
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,7 +30,6 @@ class AuthFlowIntegrationTest {
             {"email":"maria@correo.com","password":"clave-segura-123"}
             """;
 
-    // ---------- Helpers ----------
 
     private void registrarMaria() throws Exception {
         mockMvc.perform(post("/api/auth/registro")
@@ -52,8 +49,6 @@ class AuthFlowIntegrationTest {
 
         return JsonPath.read(respuesta, "$.token");
     }
-
-    // ---------- /api/usuarios/me (filtro JWT) ----------
 
     @Test
     void me_conTokenValido_devuelvePerfil() throws Exception {
@@ -79,7 +74,6 @@ class AuthFlowIntegrationTest {
     void me_conTokenAlterado_devuelve401() throws Exception {
         String token = registrarYObtenerToken();
 
-        // Cambia un carácter en medio de la firma (no el último: ver explicación)
         int posicion = token.lastIndexOf('.') + 10;
         char original = token.charAt(posicion);
         char reemplazo = (original == 'a') ? 'b' : 'a';
@@ -99,8 +93,6 @@ class AuthFlowIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, token))
                 .andExpect(status().isUnauthorized());
     }
-
-    // ---------- /api/auth (pendientes de MP-3 y MP-4c) ----------
 
     @Test
     void registro_emailInvalido_devuelve400() throws Exception {
@@ -138,5 +130,13 @@ class AuthFlowIntegrationTest {
                         .content(LOGIN_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists());
+    }
+
+    @Test
+    void me_conBearerVacio_devuelve401() throws Exception {
+        mockMvc.perform(get("/api/usuarios/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer "))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Se requiere autenticación"));
     }
 }

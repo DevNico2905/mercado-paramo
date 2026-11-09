@@ -1,4 +1,4 @@
-package dev.nickbern.mercado_paramo.config;
+package dev.nickbern.mercado_paramo.controller;
 
 import dev.nickbern.mercado_paramo.dto.PerfilResponse;
 import dev.nickbern.mercado_paramo.service.UsuarioService;

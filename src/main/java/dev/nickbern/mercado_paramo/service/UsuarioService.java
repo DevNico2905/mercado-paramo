@@ -15,14 +15,14 @@ public class UsuarioService {
 
     public PerfilResponse perfil(String email){
 
-        Usuario usuario_db = usuarioRepository.findByEmail(email)
+        Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return PerfilResponse.builder()
-                .id(usuario_db.getId())
-                .nombre(usuario_db.getNombre())
-                .email(usuario_db.getEmail())
-                .rol(usuario_db.getRol())
+                .id(usuario.getId())
+                .nombre(usuario.getNombre())
+                .email(usuario.getEmail())
+                .rol(usuario.getRol())
                 .build();
     }
 
