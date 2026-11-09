@@ -73,7 +73,7 @@ class AuthFlowIntegrationTest {
     @Test
     void me_conTokenAlterado_devuelve401() throws Exception {
         String token = registrarYObtenerToken();
-
+        // Cambia un carácter en medio de la firma (no el último: ver explicación)
         int posicion = token.lastIndexOf('.') + 10;
         char original = token.charAt(posicion);
         char reemplazo = (original == 'a') ? 'b' : 'a';

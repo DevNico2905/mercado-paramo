@@ -54,6 +54,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
+                // Token inválido o usuario inexistente: la petición sigue sin autenticar.
+                // Si la ruta es protegida, RestAuthenticationEntryPoint responde el 401.
             }
         }
 
