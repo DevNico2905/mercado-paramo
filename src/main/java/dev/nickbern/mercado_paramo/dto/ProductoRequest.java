@@ -25,6 +25,3 @@ public record ProductoRequest(
         @NotNull(message = "La categoría es obligatoria")
         Long categoriaId
 ) {}
-
-
-
