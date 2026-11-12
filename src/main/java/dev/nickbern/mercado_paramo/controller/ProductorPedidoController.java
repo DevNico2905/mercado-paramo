@@ -3,7 +3,6 @@ package dev.nickbern.mercado_paramo.controller;
 import dev.nickbern.mercado_paramo.dto.CambioEstadoRequest;
 import dev.nickbern.mercado_paramo.dto.FiltroPedidos;
 import dev.nickbern.mercado_paramo.dto.PedidoResponse;
-import dev.nickbern.mercado_paramo.model.EstadoPedido;
 import dev.nickbern.mercado_paramo.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
