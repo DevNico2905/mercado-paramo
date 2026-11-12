@@ -1,10 +1,12 @@
 package dev.nickbern.mercado_paramo.controller;
 
+import dev.nickbern.mercado_paramo.dto.FiltroPedidos;
 import dev.nickbern.mercado_paramo.dto.PedidoRequest;
 import dev.nickbern.mercado_paramo.dto.PedidoResponse;
 import dev.nickbern.mercado_paramo.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,8 +32,9 @@ public class PedidoController {
 
     @GetMapping
     public ResponseEntity<List<PedidoResponse>> misPedidos(
-            @AuthenticationPrincipal UserDetails principal) {
-        return ResponseEntity.ok(pedidoService.misPedidos(principal.getUsername()));
+            @AuthenticationPrincipal UserDetails principal,
+            @ParameterObject FiltroPedidos filtro) {
+        return ResponseEntity.ok(pedidoService.misPedidos(principal.getUsername(), filtro));
     }
 
     @PatchMapping("/{id}/cancelar")

@@ -1,5 +1,6 @@
 package dev.nickbern.mercado_paramo.service;
 
+import dev.nickbern.mercado_paramo.dto.FiltroPedidos;
 import dev.nickbern.mercado_paramo.dto.ItemPedidoRequest;
 import dev.nickbern.mercado_paramo.dto.PedidoRequest;
 import dev.nickbern.mercado_paramo.dto.PedidoResponse;
@@ -76,11 +77,10 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> misPedidos(String emailComprador) {
-        return pedidoRepository.findByCompradorEmailOrderByFechaDesc(emailComprador).stream()
-                .map(PedidoResponse::de)
-                .toList();
+    public List<PedidoResponse> misPedidos(String emailComprador, FiltroPedidos filtro) {
+        return buscar(emailComprador, null, filtro);
     }
+
 
     @Transactional
     public PedidoResponse cancelar(String emailComprador, Long pedidoId) {
@@ -95,14 +95,13 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> pedidosRecibidos(String emailProductor, EstadoPedido estado) {
-        Long productorId = productorDe(emailProductor).getId();
+    public List<PedidoResponse> todos(FiltroPedidos filtro) {
+        return buscar(null, null, filtro);
+    }
 
-        List<Pedido> pedidos = (estado == null)
-                ? pedidoRepository.findByProductorIdOrderByFechaDesc(productorId)
-                : pedidoRepository.findByProductorIdAndEstadoOrderByFechaDesc(productorId, estado);
-
-        return pedidos.stream().map(PedidoResponse::de).toList();
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> pedidosRecibidos(String emailProductor, FiltroPedidos filtro) {
+        return buscar(null, productorDe(emailProductor).getId(), filtro);
     }
 
     @Transactional
@@ -179,4 +178,18 @@ public class PedidoService {
         return productorRepository.findByUsuarioEmail(email)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Perfil de productor no encontrado"));
     }
+
+    private List<PedidoResponse> buscar(String compradorEmail, Long productorId, FiltroPedidos filtro) {
+        if (filtro.rangoInvertido()) {
+            throw new ReglaNegocioException("La fecha 'desde' no puede ser posterior a 'hasta'");
+        }
+
+        return pedidoRepository.buscar(
+                        compradorEmail, productorId, filtro.estado(),
+                        filtro.inicio(), filtro.fin(), filtro.sort())
+                .stream()
+                .map(PedidoResponse::de)
+                .toList();
+    }
+
 }
