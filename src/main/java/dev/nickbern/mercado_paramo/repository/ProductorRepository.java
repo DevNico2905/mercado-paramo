@@ -17,4 +17,6 @@ public interface ProductorRepository extends JpaRepository<Productor, Long> {
     List<Productor> findByEstadoVerificacionOrderByIdAsc(EstadoVerificacion estado);
 
     Optional<Productor> findByUsuarioEmail(String email);
+
+    long countByEstadoVerificacion(EstadoVerificacion estado);
 }

@@ -5,6 +5,7 @@ import dev.nickbern.mercado_paramo.model.Pedido;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,10 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @EntityGraph(attributePaths = {"comprador", "productor", "productor.usuario", "detalles", "detalles.producto"})
     Optional<Pedido> findConDetallesById(Long id);
+
+    @EntityGraph(attributePaths = {"detalles", "detalles.producto"})
+    List<Pedido> findByProductorIdAndEstadoAndFechaBetween(
+            Long productorId, EstadoPedido estado, LocalDateTime desde, LocalDateTime hasta);
+
+    List<Pedido> findByEstado(EstadoPedido estado);
 }
