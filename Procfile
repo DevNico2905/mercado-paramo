@@ -1,1 +1,1 @@
-web: java -jar application.jar --server.port=5050
+web: java -jar application.jar --server.port=5000
