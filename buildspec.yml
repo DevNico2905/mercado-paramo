@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+  pre_build:
+    commands:
+      - chmod +x mvnw
+      - java -version
+  build:
+    commands:
+      - ./mvnw -B clean package
+  post_build:
+    commands:
+      - cp target/mercado-paramo-*.jar application.jar
+
+artifacts:
+  files:
+    - application.jar
+    - Procfile
+    - .ebextensions/**/*
+
+reports:
+  pruebas-unitarias-e-integracion:
+    files:
+      - '**/*.xml'
+    base-directory: target/surefire-reports
+    file-format: JUNITXML
+
+cache:
+  paths:
+    - '/root/.m2/**/*'
