@@ -8,6 +8,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,7 +61,8 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("maria@correo.com"))
                 .andExpect(jsonPath("$.nombre").value("María"))
-                .andExpect(jsonPath("$.rol").value("COMPRADOR"));
+                .andExpect(jsonPath("$.rol").value("COMPRADOR"))
+                .andExpect(jsonPath("$.estadoVerificacion").value(nullValue()));
     }
 
     @Test
@@ -138,5 +141,30 @@ class AuthFlowIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer "))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Se requiere autenticación"));
+    }
+
+    @Test
+    void me_productorRecienRegistrado_devuelveEstadoPendiente() throws Exception {
+        mockMvc.perform(post("/api/auth/registro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {"nombre":"Pedro","email":"pedro@correo.com","password":"clave-segura-123",
+                             "telefono":"3009876543","rol":"PRODUCTOR","vereda":"La Concepción"}
+                            """))
+                .andExpect(status().isCreated());
+
+        String respuesta = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {"email":"pedro@correo.com","password":"clave-segura-123"}
+                            """))
+                .andReturn().getResponse().getContentAsString();
+        String token = JsonPath.read(respuesta, "$.token");
+
+        mockMvc.perform(get("/api/usuarios/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("PRODUCTOR"))
+                .andExpect(jsonPath("$.estadoVerificacion").value("PENDIENTE"));
     }
 }
