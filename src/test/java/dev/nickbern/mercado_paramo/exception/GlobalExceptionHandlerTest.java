@@ -61,6 +61,10 @@ class GlobalExceptionHandlerTest {
         void concurrencia() {
             throw new ObjectOptimisticLockingFailureException(Producto.class, 1L);
         }
+
+        @GetMapping("/numero/{id}")
+        void numero(@PathVariable Long id) {
+        }
     }
 
     @Test
@@ -128,5 +132,12 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/test/concurrencia"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @Test
+    void parametroConTipoInvalido_devuelve400() throws Exception {
+        mockMvc.perform(get("/test/numero/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("El parámetro 'id' tiene un formato inválido"));
     }
 }
