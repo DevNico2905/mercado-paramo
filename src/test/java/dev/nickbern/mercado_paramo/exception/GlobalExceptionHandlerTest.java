@@ -1,5 +1,6 @@
 package dev.nickbern.mercado_paramo.exception;
 
+import dev.nickbern.mercado_paramo.model.Producto;
 import dev.nickbern.mercado_paramo.security.JwtService;
 import dev.nickbern.mercado_paramo.security.UsuarioDetailsService;
 import jakarta.validation.Valid;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +55,11 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/error-interno")
         void errorInterno() {
             throw new RuntimeException("detalle secreto de la BD");
+        }
+
+        @GetMapping("/concurrencia")
+        void concurrencia() {
+            throw new ObjectOptimisticLockingFailureException(Producto.class, 1L);
         }
     }
 
@@ -114,5 +121,12 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.message").value("El recurso solicitado no existe"))
                 .andExpect(jsonPath("$.path").value("/test/no-existe"))
                 .andExpect(jsonPath("$.errores").isEmpty());
+    }
+
+    @Test
+    void conflictoDeConcurrencia_devuelve409() throws Exception {
+        mockMvc.perform(get("/test/concurrencia"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409));
     }
 }
