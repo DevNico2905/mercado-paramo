@@ -5,7 +5,16 @@ Plataforma de venta directa entre pequeños productores de Guasca (Cundinamarca)
 > Proyecto Integrador I (2026-2, IS G_02) – Ingeniería de Software, Universidad de La Salle.
 > Contexto: plan de Ancestral Foundation, páramo de Chingaza (Guasca).
 
-**Estado:** ✅ Backend del MVP completo (HU-01 a HU-08, 66 pruebas). 🚧 Frontend en desarrollo (ver [Hoja de ruta](#hoja-de-ruta)).
+**Estado:** ✅ MVP completo y desplegado en AWS con CI/CD (HU-01 a HU-08, 77 pruebas).
+
+### Demo en vivo
+
+| | URL |
+| --- | --- |
+| Aplicación web | [mercadoparamo.nick-bern.com](https://mercadoparamo.nick-bern.com) |
+| API | [api.mercadoparamo.nick-bern.com](https://api.mercadoparamo.nick-bern.com/api/categorias) |
+| Documentación (Swagger) | [api.mercadoparamo.nick-bern.com/swagger-ui.html](https://api.mercadoparamo.nick-bern.com/swagger-ui.html) |
+| Repositorio del frontend | [DevNico2905/mercado-paramo-web](https://github.com/DevNico2905/mercado-paramo-web) |
 
 ---
 
@@ -44,7 +53,9 @@ Los pequeños productores de Guasca reciben una baja participación en el precio
 | Seguridad | Spring Security, JWT (jjwt), BCrypt |
 | Documentación de la API | springdoc-openapi (Swagger UI con autenticación JWT) |
 | Pruebas | JUnit 5, Mockito, Spring Boot Test, MockMvc |
-| Construcción | Maven, Docker Compose (base de datos) |
+| Construcción | Maven, Docker Compose (base de datos local) |
+| Despliegue (AWS) | CodePipeline, CodeBuild, Elastic Beanstalk (Corretto 21), RDS PostgreSQL, ACM, CloudWatch Logs |
+| Frontend | Angular + Tailwind CSS en AWS Amplify Hosting ([repositorio](https://github.com/DevNico2905/mercado-paramo-web)) |
 
 ## Arquitectura
 
@@ -61,6 +72,25 @@ Controller  →  Service  →  Repository (Spring Data JPA)  →  PostgreSQL
 GlobalExceptionHandler   DTOs (records) con métodos de fábrica de(...)
 ```
 
+### Despliegue en AWS (CI/CD)
+
+```
+                     mercadoparamo.nick-bern.com          api.mercadoparamo.nick-bern.com
+                                 │ HTTPS                              │ HTTPS (certificado ACM)
+                                 ▼                                    ▼
+GitHub (web) ──push──▶  AWS Amplify Hosting          Application Load Balancer
+                        (build + despliegue)                          │
+                                                                      ▼
+GitHub (api) ──push──▶ CodePipeline ─▶ CodeBuild ─▶ Elastic Beanstalk (Java 21) ──▶ RDS PostgreSQL
+                                    (pruebas + .jar)                  │            (red privada)
+                                                                 CloudWatch Logs
+```
+
+- Cada push a `main` dispara el pipeline: CodeBuild ejecuta `buildspec.yml` (compila, corre las pruebas con caché de Maven y publica el reporte JUnit) y, si todo pasa, Elastic Beanstalk despliega el nuevo `.jar`. Si una prueba falla, no se despliega.
+- La configuración por entorno (base de datos, secreto JWT, CORS, zona horaria) vive en variables de entorno de Beanstalk; el código no cambia entre local y producción.
+- RDS no es accesible desde internet: su *security group* solo admite conexiones desde las instancias de Beanstalk.
+- El health check del balanceador usa `/api/categorias` (`.ebextensions/healthcheck.config`), una ruta pública que además consulta la base de datos.
+
 ### Estructura del proyecto
 
 ```
@@ -76,7 +106,11 @@ mercado-paramo/
 │   └── exception/       jerarquía NegocioException + GlobalExceptionHandler
 ├── src/main/resources/application.properties
 ├── src/test/java/...    pruebas unitarias, de slice e integración
-└── docker-compose.yaml  PostgreSQL 16
+├── scripts/seed-demo.sh datos de demostración a través de la API
+├── buildspec.yml        build y pruebas en AWS CodeBuild
+├── Procfile             arranque en Elastic Beanstalk (puerto 5000)
+├── .ebextensions/       configuración del entorno de Beanstalk (health check)
+└── docker-compose.yaml  PostgreSQL 16 para desarrollo local
 ```
 
 ## Modelo de datos
@@ -100,21 +134,25 @@ erDiagram
 | --- | --- | --- | --- |
 | POST | `/api/auth/registro` | Público | Registrar usuario (COMPRADOR o PRODUCTOR) |
 | POST | `/api/auth/login` | Público | Obtener JWT |
-| GET | `/api/usuarios/me` | Autenticado | Perfil del usuario actual |
+| GET | `/api/usuarios/me` | Autenticado | Perfil del usuario actual (incluye estado de verificación y vereda del productor) |
 | GET | `/api/categorias` | Público | Categorías |
 | GET | `/api/productos?categoriaId=&productorId=` | Público | Catálogo |
 | GET | `/api/productos/{id}` | Público | Detalle de producto |
 | GET / POST | `/api/productor/productos` | PRODUCTOR | Listar o crear productos propios |
-| PUT / DELETE | `/api/productor/productos/{id}` | PRODUCTOR | Editar o desactivar producto propio |
+| PUT / DELETE | `/api/productor/productos/{id}` | PRODUCTOR | Editar u ocultar producto propio |
+| PATCH | `/api/productor/productos/{id}/reactivar` | PRODUCTOR | Volver a mostrar un producto oculto |
 | GET / PATCH | `/api/productor/pedidos`, `/{id}/estado` | PRODUCTOR | Pedidos recibidos; aceptar, rechazar o entregar |
 | GET | `/api/productor/reportes/ventas?desde=&hasta=` | PRODUCTOR | Reporte de ventas y participación |
 | POST / GET | `/api/pedidos` | COMPRADOR | Crear pedido o listar los propios |
 | PATCH | `/api/pedidos/{id}/cancelar` | COMPRADOR | Cancelar pedido pendiente |
 | GET | `/api/admin/productores?estado=` | ADMIN | Listar productores |
 | PATCH | `/api/admin/productores/{id}/verificacion` | ADMIN | Verificar o rechazar productor |
+| GET | `/api/admin/pedidos` | ADMIN | Todos los pedidos de la plataforma |
 | GET | `/api/admin/reportes/impacto` | ADMIN | Indicador de impacto de la plataforma |
 
-Documentación interactiva: `http://localhost:8080/swagger-ui.html`. Haz login, copia el `token` y pégalo en **Authorize** para probar los endpoints protegidos.
+Los tres listados de pedidos aceptan filtros y orden opcionales: `estado`, `desde`, `hasta` (`YYYY-MM-DD`), `ordenarPor` (`FECHA` \| `TOTAL` \| `ESTADO`) y `direccion` (`ASC` \| `DESC`).
+
+Documentación interactiva: [Swagger en producción](https://api.mercadoparamo.nick-bern.com/swagger-ui.html) o `http://localhost:8080/swagger-ui.html` en local. Haz login, copia el `token` y pégalo en **Authorize** para probar los endpoints protegidos.
 
 ## Cómo ejecutar
 
@@ -147,17 +185,29 @@ docker compose up -d db      # PostgreSQL 16
 
 Al primer arranque se crean el usuario `admin@mercado-paramo.local` (con la contraseña de `ADMIN_PASSWORD`) y 5 categorías. Los datos persisten entre reinicios.
 
+### Datos de demostración
+
+`scripts/seed-demo.sh` carga, a través de la API, 4 productores de Guasca (3 verificados y 1 pendiente), 12 productos en las 5 categorías, una compradora y pedidos en todos los estados. Es idempotente y requiere `curl` y `jq`:
+
+```bash
+read -s "ADMIN_PASSWORD?Contraseña del ADMIN: "; echo; export ADMIN_PASSWORD
+./scripts/seed-demo.sh                                          # backend local
+API_URL=https://otro-entorno DEMO_PASSWORD='...' ./scripts/seed-demo.sh
+```
+
 ## Pruebas
 
 ```bash
 ./mvnw test
 ```
 
-66 pruebas en tres niveles:
+77 pruebas en tres niveles:
 
 - **Unitarias** (Mockito): `JwtService`, `AuthService`.
-- **De slice** (`@WebMvcTest`): formato estándar de errores (`GlobalExceptionHandler`).
-- **De integración** (Spring completo, MockMvc, H2): flujos de autenticación, CORS, verificación de productores, catálogo, pedidos (stock, estados, IDOR) y reportes.
+- **De slice** (`@WebMvcTest`): formato estándar de errores (`GlobalExceptionHandler`), incluidos 409 por concurrencia y 400 por tipos inválidos.
+- **De integración** (Spring completo, MockMvc, H2): flujos de autenticación, CORS, verificación de productores, catálogo, pedidos (stock, estados, filtros, IDOR) y reportes.
+
+Las mismas pruebas corren en AWS CodeBuild en cada push, y su resultado se publica como reporte JUnit.
 
 El protocolo de pruebas (CP-01 a CP-14) está en el documento del proyecto.
 
@@ -166,14 +216,15 @@ El protocolo de pruebas (CP-01 a CP-14) está en el documento del proyecto.
 - [x] **Iteración 1 – Base y seguridad:** modelo de datos, registro, login con JWT y roles.
 - [x] **Iteración 2 – Catálogo:** CRUD de productos, verificación de productores, filtro por categoría y productor.
 - [x] **Iteración 3 – Pedidos:** creación con reserva de stock, flujo de estados, reporte de ventas e indicador de impacto.
-- [ ] **Iteración 4 – Calidad y entrega:**
-  - [x] Pruebas unitarias e integración (66)
-  - [x] Documentación Swagger con JWT
-  - [ ] Dockerfile de la aplicación y despliegue
-- [ ] **Iteración 5 – Frontend web** a partir del contrato OpenAPI.
+- [x] **Iteración 4 – Calidad y entrega:** 77 pruebas, Swagger con JWT y despliegue en AWS con CI/CD (CodePipeline → CodeBuild → Elastic Beanstalk + RDS) y dominio propio con HTTPS.
+- [x] **Iteración 5 – Frontend web:** Angular + Tailwind generado con desarrollo guiado por especificación a partir del contrato OpenAPI, desplegado en AWS Amplify ([repositorio](https://github.com/DevNico2905/mercado-paramo-web)).
 
 ### Mejoras futuras
 
+- Entorno de pruebas (*staging*) con aprobación manual antes de producción (entrega continua completa).
+- Secretos en AWS Secrets Manager en lugar de variables de entorno de Beanstalk.
+- Rol del pipeline con permisos mínimos (hoy usa la política administrada de Elastic Beanstalk).
+- Token en cookie `HttpOnly` en lugar de `localStorage` en el frontend.
 - Migraciones versionadas con Flyway (hoy `ddl-auto=update`).
 - Paginación y búsqueda por nombre en el catálogo.
 - Fecha de entrega propia del pedido para los reportes.
