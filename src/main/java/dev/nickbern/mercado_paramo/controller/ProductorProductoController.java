@@ -49,4 +49,11 @@ public class ProductorProductoController {
         productoService.desactivar(principal.getUsername(), id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/reactivar")
+    public ResponseEntity<ProductoResponse> reactivar(
+            @AuthenticationPrincipal UserDetails principal,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(productoService.reactivar(principal.getUsername(), id));
+    }
 }
