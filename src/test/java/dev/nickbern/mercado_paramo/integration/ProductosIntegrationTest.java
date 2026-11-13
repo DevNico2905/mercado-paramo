@@ -218,4 +218,22 @@ class ProductosIntegrationTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].activo").value(false));
     }
+
+    @Test
+    void reactivar_productoOculto_vuelveAlCatalogo() throws Exception {
+        String token = productorVerificado("Pedro", "pedro@correo.com");
+        Integer idProducto = crearProducto(token, idCategoria("Lácteos"));
+
+        mockMvc.perform(delete(URL_PRODUCTOR + "/{id}", idProducto)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(patch(URL_PRODUCTOR + "/{id}/reactivar", idProducto)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(true));
+
+        mockMvc.perform(get("/api/productos"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
 }

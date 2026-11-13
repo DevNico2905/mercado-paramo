@@ -75,6 +75,13 @@ public class ProductoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Perfil de productor no encontrado"));
     }
 
+    @Transactional
+    public ProductoResponse reactivar(String email, Long id) {
+        Producto producto = productoPropio(email, id);
+        producto.setActivo(true);
+        return ProductoResponse.de(producto);
+    }
+
     private Productor productorVerificadoDe(String email) {
         Productor productor = productorDe(email);
         if (productor.getEstadoVerificacion() != EstadoVerificacion.VERIFICADO) {

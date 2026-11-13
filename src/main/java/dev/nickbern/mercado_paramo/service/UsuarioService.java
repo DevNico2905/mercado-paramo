@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
@@ -25,18 +27,17 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
-        EstadoVerificacion estadoVerificacion = (usuario.getRol() == Rol.PRODUCTOR)
+        Optional<Productor> productor = (usuario.getRol() == Rol.PRODUCTOR)
                 ? productorRepository.findByUsuarioEmail(email)
-                .map(Productor::getEstadoVerificacion)
-                .orElse(null)
-                : null;
+                : Optional.empty();
 
         return PerfilResponse.builder()
                 .id(usuario.getId())
                 .nombre(usuario.getNombre())
                 .email(usuario.getEmail())
                 .rol(usuario.getRol())
-                .estadoVerificacion(estadoVerificacion)
+                .estadoVerificacion(productor.map(Productor::getEstadoVerificacion).orElse(null))
+                .vereda(productor.map(Productor::getVereda).orElse(null))
                 .build();
     }
 }

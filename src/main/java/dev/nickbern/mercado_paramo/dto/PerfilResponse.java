@@ -9,6 +9,7 @@ public record PerfilResponse(
         String nombre,
         String email,
         Rol rol,
-        EstadoVerificacion estadoVerificacion
+        EstadoVerificacion estadoVerificacion,
+        String vereda
 ) {
 }

@@ -62,7 +62,8 @@ class AuthFlowIntegrationTest {
                 .andExpect(jsonPath("$.email").value("maria@correo.com"))
                 .andExpect(jsonPath("$.nombre").value("María"))
                 .andExpect(jsonPath("$.rol").value("COMPRADOR"))
-                .andExpect(jsonPath("$.estadoVerificacion").value(nullValue()));
+                .andExpect(jsonPath("$.estadoVerificacion").value(nullValue()))
+                .andExpect(jsonPath("$.vereda").value(nullValue()));
     }
 
     @Test
@@ -165,6 +166,7 @@ class AuthFlowIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rol").value("PRODUCTOR"))
-                .andExpect(jsonPath("$.estadoVerificacion").value("PENDIENTE"));
+                .andExpect(jsonPath("$.estadoVerificacion").value("PENDIENTE"))
+                .andExpect(jsonPath("$.vereda").value("La Concepción"));
     }
 }
