@@ -37,4 +37,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             Long productorId, EstadoPedido estado, LocalDateTime desde, LocalDateTime hasta);
 
     List<Pedido> findByEstado(EstadoPedido estado);
+
+    long countByCompradorIdAndEstado(Long compradorId, EstadoPedido estado);
 }

@@ -11,6 +11,7 @@ import dev.nickbern.mercado_paramo.repository.ProductoRepository;
 import dev.nickbern.mercado_paramo.repository.ProductorRepository;
 import dev.nickbern.mercado_paramo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +33,20 @@ public class PedidoService {
     private final ProductoRepository productoRepository;
     private final ProductorRepository productorRepository;
     private final UsuarioRepository usuarioRepository;
+    @Value("${app.pedidos.max-pendientes}")
+    private int maxPendientes;
 
     @Transactional
     public PedidoResponse crear(String emailComprador, PedidoRequest request) {
         Usuario comprador = usuarioRepository.findByEmail(emailComprador)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+
+        long pendientes = pedidoRepository.countByCompradorIdAndEstado(comprador.getId(), EstadoPedido.PENDIENTE);
+        if (pendientes >= maxPendientes) {
+            throw new LimitePedidosException(
+                    "Tienes %d pedidos pendientes. Espera a que el productor responda o cancela alguno."
+                            .formatted(pendientes));
+        }
 
         Map<Long, Integer> cantidades = cantidadesPorProducto(request.items());
 
