@@ -20,6 +20,7 @@ public record ProductoRequest(
 
         @NotNull(message = "El stock es obligatorio")
         @PositiveOrZero(message = "El stock no puede ser negativo")
+        @Max(value = 100_000, message = "El stock admite máximo 100.000 unidades")
         Integer stock,
 
         @NotNull(message = "La categoría es obligatoria")

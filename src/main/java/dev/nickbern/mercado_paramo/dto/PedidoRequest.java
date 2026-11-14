@@ -13,6 +13,7 @@ public record PedidoRequest(
         String direccionEntrega,
 
         @NotEmpty(message = "El pedido debe tener al menos un producto")
+        @Size(max = 50, message = "El pedido admite máximo 50 productos")
         @Valid
         List<ItemPedidoRequest> items
 ) {}
