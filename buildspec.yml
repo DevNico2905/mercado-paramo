@@ -14,12 +14,14 @@ phases:
   post_build:
     commands:
       - cp target/mercado-paramo-*.jar application.jar
+      - ls -la .ebextensions
 
 artifacts:
   files:
     - application.jar
     - Procfile
-    - .ebextensions/**/*
+    - .ebextensions/healthcheck.config
+    - .ebextensions/alb-http-to-https.config
 
 reports:
   pruebas-unitarias-e-integracion:
