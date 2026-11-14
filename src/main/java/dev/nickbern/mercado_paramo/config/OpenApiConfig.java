@@ -18,7 +18,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Mercado Páramo API")
-                        .version("v2.0.0")
+                        .version("v2.0.1")
                         .description("Venta directa entre productores de Guasca y compradores, sin intermediarios."))
                 .addSecurityItem(new SecurityRequirement().addList(ESQUEMA_JWT))
                 .components(new Components().addSecuritySchemes(ESQUEMA_JWT,
